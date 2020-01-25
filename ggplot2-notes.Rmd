@@ -1,0 +1,134 @@
+---
+title: "ggplot2-notes"
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
+author: "Kara"
+date: "2020/1/25"
+output: html_document
+---
+
+&emsp;  
+**<font color="red">Import, tidy, transform, visualize and model data.</font>**  
+
+# 1. Explore  
+<font color = "black">_Data exploration is the art of looking at your data, rapidly **generating hypotheses**, quickly **testing** them, then repeating again and again and again._  
+
+## Chap.1 ggplot2 visualization
+**<font color = "red">Question:** <font color = "black">do cars with big engines use more fuel than cars with small engines?  
+
+```{r}
+library(tidyverse)
+
+ggplot(mpg) + 
+  geom_point(aes(displ, hwy), color = "#00AFBB") +
+  xlab("Engine Size") +
+  ylab("Fuel Efficiency") +
+  theme_bw()
+```
+```{r}
+# add a third variable like class  
+ggplot(mpg) + 
+  geom_point(aes(displ, hwy, color = class)) +
+  xlab("Engine Size") +
+  ylab("Fuel Efficiency") +
+  theme_bw()
+```
+Sports cars have large engines like SUVs and pickup trucks, but small bodies like midsize and compact cars, which improves their gas mileage.  
+
+### Facets  
+
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(displ, hwy)) +
+  facet_wrap(~ class, nrow = 2) +
+  xlab("Engine Size") +
+  ylab("Fuel Efficiency") +
+  theme_bw()
+```
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(displ, hwy)) +
+  facet_grid(drv ~ cyl) + #两个变量分组
+  theme_bw()
+```
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(displ, hwy)) +
+  facet_grid(.~ cyl) +  # 单变量同行展示
+  theme_bw()
+```
+```{r}
+ggplot(mpg) + 
+  geom_point(aes(displ, hwy)) +
+  facet_grid(drv ~.) +  # 单变量分组同列
+  theme_bw()
+```
+### Geometric Object  
+
+```{r}
+ggplot(mpg) +
+  geom_smooth(aes(displ, hwy,
+                  color = drv), # 注意color在aes里面赋值
+              method = "loess")
+```
+Here geom_smooth() separates the cars into three lines based on their drv value, which describes a car’s drivetrain.  
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point() +
+  geom_smooth(method = "loess")
+# If you place mappings in a geom function, ggplot2 will treat them as local mappings for the layer.
+```
+```{r}
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point(aes(color = class)) + 
+  geom_smooth(method = "loess")
+```
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
+  geom_point(mapping = aes(color = class)) + 
+  geom_smooth(data = filter(mpg, class == "subcompact"), 
+              method = "loess",
+              se = FALSE)
+```
+### Exercise  
+```{r}
+p0 <- ggplot(mpg, aes(displ, hwy)) +
+  geom_point()
+p1 <- p0 + geom_smooth(color = "blue",
+              method = "loess",
+              se = FALSE)
+p2 <- p0 + geom_smooth(aes(group = drv),
+                       method = "loess",
+              se = FALSE)
+library(gridExtra)
+grid.arrange(p1,p2,nrow=1) # 同行展示
+```
+```{r}
+p0_1 <- ggplot(mpg, aes(displ, hwy)) + 
+  geom_point(aes(color = drv))
+
+p3 <- p0_1 +
+  geom_smooth(aes(group = drv, color = drv),
+              method = "loess",
+              se = FALSE)
+
+p4 <- p0_1 +
+  geom_smooth(method = "loess",
+              se = FALSE)
+
+p5 <- p0_1 + 
+  geom_smooth(aes(linetype = drv),
+              method = "loess",
+              se = FALSE)
+
+p6 <- ggplot(mpg, aes(displ, hwy)) +
+  geom_point(color = "white",
+             size = 5) +
+  geom_point(aes(color = drv),
+             size = 2)
+
+grid.arrange(p3,p4,p5,p6,nrow=2)
+```
